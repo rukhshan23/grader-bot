@@ -3,7 +3,8 @@ frontend:
   phases:
     preBuild:
       commands:
-        - ls -la  # Debugging step (Check if frontend/ exists)
+        - ls -la  # Debugging step to check if frontend/ exists
+        - if [ ! -d "frontend" ]; then echo "Error: frontend/ directory not found"; exit 1; fi
         - cd frontend && npm install
     build:
       commands:
@@ -15,4 +16,3 @@ frontend:
   cache:
     paths:
       - frontend/node_modules/**/*
-
