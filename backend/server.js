@@ -19,6 +19,10 @@ let userFiles = {}; // Store user session => uploaded file path
 // Multer setup for file uploads
 const upload = multer({ dest: "uploads/" });
 
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // **API: Upload CSV (Handles Unique Filenames)**
 app.post("/api/upload-csv", upload.single("file"), (req, res) => {
   const fileExt = req.file.originalname.split(".").pop();
