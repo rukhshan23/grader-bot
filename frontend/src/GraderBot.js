@@ -187,7 +187,7 @@ export default function GraderBot() {
           </div>
 
           <div className="input-group">
-            <label>Grading Prompt:</label>
+            <label>Grading Prompt (the student submission will be appended before the grading prompt):</label>
             <textarea className="text-area" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
           </div>
 

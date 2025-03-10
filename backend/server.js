@@ -87,7 +87,7 @@ app.post("/api/generate-output", async (req, res) => {
   }
 
   try {
-    const response = await generate("gpt4-new", "Give your best response.", review + prompt, 0.2, 0, userSessionID);
+    const response = await generate("gpt4-new", "Give your best response.", "The student submission starts below:\n\n " + review + "\n\n" + prompt, 0.2, 0, userSessionID);
     res.json({ output: response["response"] });
   } catch (error) {
     res.status(500).json({ error: error.message });
