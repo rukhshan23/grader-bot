@@ -14,8 +14,8 @@ export default function GraderBot() {
   const [fileName, setFileName] = useState(""); // Store uploaded file name
   const [sessionConfirmed, setSessionConfirmed] = useState(false); // Track if user session ID is entered
   const [backendSessionID, setBackendSessionID] = useState(null); // Backend-generated session ID
-  const BACKEND_URL = "http://54.208.79.51:3001";
-  // const BACKEND_URL = "http://localhost:3001";
+  // const BACKEND_URL = "http://54.208.79.51:3001";
+  const BACKEND_URL = "http://localhost:3001";
 
   
 
@@ -47,9 +47,10 @@ export default function GraderBot() {
   // Reset botOutput when switching submissions
   useEffect(() => {
     if (submissions.length > 0) {
-      setBotOutput(originalSubmissions[currentIndex]?.botOutput || "");
+      setBotOutput(submissions[currentIndex]?.botOutput || "");
     }
-  }, [currentIndex, submissions, originalSubmissions]);
+  }, [currentIndex, submissions]);
+  
 
   // Handle CSV Upload
   const handleFileUpload = async (event) => {
@@ -92,12 +93,13 @@ export default function GraderBot() {
       return;
     }
 
-    const submission = submissions[currentIndex]?.submission || "";
+    const review = submissions[currentIndex]?.review || "";
+
     try {
       const res = await axios.post(`${BACKEND_URL}/api/generate-output`, {
         prompt,
         userSessionID, // User-entered Session ID
-        submission,
+        review,
       });
       setBotOutput(res.data.output);
     } catch (error) {
@@ -122,6 +124,7 @@ export default function GraderBot() {
   
       // Re-fetch the updated CSV
       const res = await axios.get(`${BACKEND_URL}/api/get-submissions?sessionId=${backendSessionID}`);
+      console.log("Fetched Submissions:", res.data); // Debugging
       setSubmissions(res.data);
       setOriginalSubmissions(res.data);
       alert("Output saved successfully!");
@@ -179,7 +182,8 @@ export default function GraderBot() {
         <>
           <div className="input-group">
             <label>Student Submission:</label>
-            <textarea className="text-area" value={submissions[currentIndex]?.submission || ""} readOnly />
+            <textarea className="text-area" value={submissions[currentIndex]?.review || "No review found"} readOnly />
+
           </div>
 
           <div className="input-group">

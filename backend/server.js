@@ -40,7 +40,13 @@ app.post("/api/upload-csv", upload.single("file"), (req, res) => {
     // Parse CSV and store in memory
     fs.createReadStream(uploadedFilePath)
       .pipe(csv())
-      .on("data", (row) => submissions.push(row))
+      .on("data", (row) => {
+        const reviewKey = Object.keys(row).find(key => key.trim().toLowerCase().includes("please enter your paper review below"));
+        submissions.push({
+            review: row[reviewKey]?.trim() || "ERROR: Review column missing",
+            botOutput: row["botOutput"] || "" // Preserve botOutput if present
+        });
+    })
       .on("end", () => {
         res.json({
           message: "File uploaded successfully",
@@ -59,20 +65,29 @@ app.get("/api/get-submissions", (req, res) => {
   let submissions = [];
   fs.createReadStream(userFiles[sessionId].filePath)
     .pipe(csv())
-    .on("data", (row) => submissions.push(row))
-    .on("end", () => res.json(submissions));
+    .on("data", (row) => {
+      const reviewKey = Object.keys(row).find(key => key.trim().toLowerCase().includes("please enter your paper review below"));
+      submissions.push({
+          review: row[reviewKey]?.trim() || "ERROR: Review column missing",
+          botOutput: row["botOutput"] || "" // Preserve botOutput if present
+      });
+  })
+  .on("end", () => {
+    res.json(submissions);
+});
+
 });
 
 // **API: Generate LLM Output**
 app.post("/api/generate-output", async (req, res) => {
-  const {prompt, userSessionID, submission} = req.body;
+  const {prompt, userSessionID, review} = req.body;
   
   if (!userSessionID || userSessionID.trim() === "") {
     return res.status(400).json({ error: "The required field is missing." });
   }
 
   try {
-    const response = await generate("gpt4-new", "Give your best response.", submission + prompt, 0.2, 0, userSessionID);
+    const response = await generate("gpt4-new", "Give your best response.", review + prompt, 0.2, 0, userSessionID);
     res.json({ output: response["response"] });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -95,18 +110,26 @@ app.post("/api/save-output", (req, res) => {
     submissions.push(row); // Collect all rows
   })
   .on("end", () => {
+    //console.log("Before Update:", submissions); // Debugging
     if (index >= 0 && index < submissions.length) {
-      submissions[index].botOutput = botOutput; // Update only the relevant row
+      submissions[index] = {
+        ...submissions[index],
+        botOutput: botOutput
+    };
     }
+    //console.log("After Update:", submissions); // Debugging
+
 
     const ws = fs.createWriteStream(filePath);
     fastCsv.write(submissions, { headers: true }).pipe(ws);
     
     ws.on("finish", () => {
+      //console.log("CSV updated successfully.");
       res.json({ message: "CSV updated successfully" });
     });
   })
   .on("error", (error) => {
+    console.error("Error writing CSV:", error);
     res.status(500).json({ error: "Error reading CSV file" });
   });
 });
