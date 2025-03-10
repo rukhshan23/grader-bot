@@ -14,11 +14,16 @@ export default function GraderBot() {
   const [fileName, setFileName] = useState(""); // Store uploaded file name
   const [sessionConfirmed, setSessionConfirmed] = useState(false); // Track if user session ID is entered
   const [backendSessionID, setBackendSessionID] = useState(null); // Backend-generated session ID
+  const BACKEND_URL = "http://54.208.79.51:3001";
+  // const BACKEND_URL = "http://localhost:3001";
+
+  
+
 
   // Fetch submissions when a file is uploaded and session ID is confirmed
   useEffect(() => {
     if (fileUploaded && sessionConfirmed) {
-      axios.get(`http://localhost:3001/api/get-submissions?sessionId=${backendSessionID}`).then((res) => {
+      axios.get(`${BACKEND_URL}/api/get-submissions?sessionId=${backendSessionID}`).then((res) => {
         setSubmissions(res.data);
         setOriginalSubmissions(res.data);
       });
@@ -29,7 +34,7 @@ export default function GraderBot() {
   useEffect(() => {
     const handleUnload = async () => {
       if (backendSessionID) {
-        await axios.post("http://localhost:3001/api/end-session", { sessionId: backendSessionID });
+        await axios.post(`${BACKEND_URL}/api/end-session`, { sessionId: backendSessionID });
       }
     };
 
@@ -55,7 +60,7 @@ export default function GraderBot() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post("http://localhost:3001/api/upload-csv", formData, {
+      const res = await axios.post(`${BACKEND_URL}/api/upload-csv`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -76,7 +81,7 @@ export default function GraderBot() {
     }
     
     // Just trigger download without ending session
-    window.open(`http://localhost:3001/api/download-csv?sessionId=${backendSessionID}`, "_blank");
+    window.open(`${BACKEND_URL}/api/download-csv?sessionId=${backendSessionID}`, "_blank");
   };
   
 
@@ -89,7 +94,7 @@ export default function GraderBot() {
 
     const submission = submissions[currentIndex]?.submission || "";
     try {
-      const res = await axios.post("http://localhost:3001/api/generate-output", {
+      const res = await axios.post(`${BACKEND_URL}/api/generate-output`, {
         prompt,
         userSessionID, // User-entered Session ID
         submission,
@@ -109,14 +114,14 @@ export default function GraderBot() {
     }
   
     try {
-      await axios.post("http://localhost:3001/api/save-output", {
+      await axios.post(`${BACKEND_URL}/api/save-output`, {
         sessionId: backendSessionID,
         index: currentIndex,
         botOutput, // Ensure it saves the latest edited feedback
       });
   
       // Re-fetch the updated CSV
-      const res = await axios.get(`http://localhost:3001/api/get-submissions?sessionId=${backendSessionID}`);
+      const res = await axios.get(`${BACKEND_URL}/api/get-submissions?sessionId=${backendSessionID}`);
       setSubmissions(res.data);
       setOriginalSubmissions(res.data);
       alert("Output saved successfully!");
