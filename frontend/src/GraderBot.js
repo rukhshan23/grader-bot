@@ -14,8 +14,8 @@ export default function GraderBot() {
   const [fileName, setFileName] = useState(""); // Store uploaded file name
   const [sessionConfirmed, setSessionConfirmed] = useState(false); // Track if user session ID is entered
   const [backendSessionID, setBackendSessionID] = useState(null); // Backend-generated session ID
-  // const BACKEND_URL = "http://54.208.79.51:3001";
-  const BACKEND_URL = "http://localhost:3001";
+  const BACKEND_URL = "http://54.208.79.51:3001";
+  // const BACKEND_URL = "http://localhost:3001";
 
   
 
